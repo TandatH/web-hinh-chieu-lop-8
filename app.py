@@ -73,31 +73,45 @@ def plot_dynamic_projections(h1, w1, l2):
     plt.tight_layout(); return fig
 
 # --- 3. HÀM AI PHÂN TÍCH (NÂNG CẤP) ---
+# --- SỬA HÀM NÀY TRONG FILE app.py ---
+
 def ask_ai_analyze_block(image_file=None, h1=None, w1=None, l2=None):
     if not api_key_input: return "⚠️ Vui lòng nhập API Key."
     
-    # Dùng model Flash cho nhanh
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    try:
+        # CẤU HÌNH MODEL:
+        # Nếu có ảnh -> BẮT BUỘC dùng gemini-1.5-flash
+        # Nếu chỉ có text -> Có thể dùng gemini-pro (nhưng flash vẫn tốt hơn)
+        model_name = 'gemini-1.5-flash' 
+        model = genai.GenerativeModel(model_name)
 
-    if image_file:
-        # Trường hợp 1: Phân tích ảnh khối mới tải lên
-        img = Image.open(image_file)
-        prompt = """
-        Bạn là giáo viên Vẽ Kỹ Thuật. Hãy quan sát khối vật thể 3D trong bức ảnh này và:
-        1. Mô tả ngắn gọn hình dáng của vật thể này (Nó được tạo thành từ các khối cơ bản nào?).
-        2. Dự đoán hình chiếu đứng (nhìn từ mặt trước) của nó sẽ có hình dạng gì?
-        3. Dự đoán hình chiếu bằng (nhìn từ trên xuống) của nó sẽ có hình dạng gì?
-        """
-        response = model.generate_content([prompt, img])
-    else:
-        # Trường hợp 2: Phân tích khối L mặc định
-        prompt = f"""
-        Bạn là giáo viên Vẽ Kỹ Thuật. Vật thể là khối chữ L có kích thước: Phần đứng cao {h1}, rộng {w1}. Phần ngang dài thêm {l2}.
-        Hãy giải thích tại sao hình chiếu cạnh của nó lại có một nét gạch ngang ở giữa?
-        """
-        response = model.generate_content(prompt)
-        
-    return response.text
+        if image_file:
+            # --- TRƯỜNG HỢP 1: CÓ ẢNH ---
+            img = Image.open(image_file)
+            prompt = """
+            Bạn là giáo viên Vẽ Kỹ Thuật. Hãy quan sát hình ảnh khối vật thể này:
+            1. Mô tả hình dáng vật thể (nó giống khối hình học cơ bản nào?).
+            2. Dự đoán hình chiếu đứng (nhìn thẳng mặt trước) sẽ là hình gì?
+            3. Dự đoán hình chiếu bằng (nhìn từ trên xuống) sẽ là hình gì?
+            Trả lời ngắn gọn, gạch đầu dòng.
+            """
+            # Gửi cả ảnh và câu hỏi
+            response = model.generate_content([prompt, img])
+        else:
+            # --- TRƯỜNG HỢP 2: KHÔNG CÓ ẢNH (CHỈ DÙNG THÔNG SỐ) ---
+            prompt = f"""
+            Bạn là giáo viên Vẽ Kỹ Thuật. Vật thể là khối chữ L:
+            - Phần đứng: Cao {h1}, Rộng {w1}.
+            - Phần ngang: Dài {l2}.
+            Hãy giải thích ngắn gọn: Tại sao hình chiếu cạnh (nhìn từ trái sang) lại là hình chữ nhật có một đường gạch ngang?
+            """
+            response = model.generate_content(prompt)
+            
+        return response.text
+
+    except Exception as e:
+        # In lỗi chi tiết ra màn hình để dễ sửa
+        return f"⚠️ Gặp lỗi kết nối AI: {str(e)}\n\n💡 Gợi ý: Hãy chắc chắn file requirements.txt có dòng 'google-generativeai>=0.7.0'"
 
 # --- 4. GIAO DIỆN CHÍNH (LOGIC HIỂN THỊ MỚI) ---
 st.title("🛠️ Phân Tích Vật Thể 3D & Hình Chiếu")
@@ -142,3 +156,4 @@ if st.button("Nhờ AI phân tích vật thể đang hiển thị"):
         else:
             analysis_result = ask_ai_analyze_block(h1=h1, w1=w1, l2=l2)
         st.markdown(analysis_result)
+
