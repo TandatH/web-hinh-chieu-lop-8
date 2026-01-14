@@ -111,34 +111,42 @@ def plot_dynamic_projections(h1, w1, l2):
     plt.tight_layout()
     return fig
 
-# --- 4. HÀM AI PHÂN TÍCH ---
 def ask_ai(h1, w1, l2, uploaded_file=None):
     if not api_key_input:
         return "⚠️ Vui lòng nhập API Key trước."
-    
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    # Kịch bản 1: Chỉ có thông số
-    prompt = f"""
-    Tôi đang dạy vẽ kỹ thuật lớp 8. 
-    Vật thể là khối chữ L có kích thước:
-    - Phần đứng cao: {h1} đv, rộng {w1} đv.
-    - Phần ngang dài thêm: {l2} đv.
-    
-    Hãy giải thích ngắn gọn cho học sinh:
-    1. Hình chiếu đứng có kích thước bao nhiêu?
-    2. Tại sao hình chiếu cạnh lại có một đường gạch ngang ở độ cao 1?
-    """
 
-    # Kịch bản 2: Người dùng tải ảnh bài làm lên
-    if uploaded_file:
-        img = Image.open(uploaded_file)
-        prompt = "Đây là bản vẽ của học sinh về khối chữ L. Hãy kiểm tra xem học sinh vẽ 3 hình chiếu có đúng tỷ lệ không? Nhận xét ngắn gọn."
-        response = model.generate_content([prompt, img])
-    else:
-        response = model.generate_content(prompt)
-        
-    return response.text
+    try:
+        model = genai.GenerativeModel(
+            model_name="models/gemini-1.5-flash"
+        )
+
+        # Prompt cho giáo viên Công nghệ 8
+        prompt = f"""
+        Tôi đang dạy vẽ kỹ thuật lớp 8.
+        Vật thể là khối chữ L có kích thước:
+        - Phần đứng cao {h1} đơn vị, rộng {w1} đơn vị.
+        - Phần ngang dài thêm {l2} đơn vị, cao 1 đơn vị.
+
+        Hãy giải thích NGẮN GỌN, DỄ HIỂU cho học sinh:
+        1. Kích thước hình chiếu đứng.
+        2. Vì sao hình chiếu cạnh có một đường ngang ở cao độ 1.
+        """
+
+        # Nếu có ảnh học sinh vẽ
+        if uploaded_file:
+            img = Image.open(uploaded_file)
+            response = model.generate_content([
+                "Đây là bản vẽ hình chiếu của học sinh lớp 8. Hãy nhận xét đúng – sai và góp ý ngắn gọn.",
+                img
+            ])
+        else:
+            response = model.generate_content(prompt)
+
+        return response.text
+
+    except Exception as e:
+        return f"❌ Lỗi AI: {e}"
+text
 
 # --- 5. GIAO DIỆN CHÍNH ---
 st.title("🛠️ Tạo & Phân Tích Khối Chữ L (Dynamic)")
@@ -173,3 +181,4 @@ with tab2:
         with st.spinner("AI đang soi bản vẽ..."):
             st.image(uploaded_file, width=200)
             st.write(ask_ai(h1, w1, l2, uploaded_file))
+
