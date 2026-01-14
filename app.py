@@ -146,7 +146,7 @@ def ask_ai(h1, w1, l2, uploaded_file=None):
 
     except Exception as e:
         return f"❌ Lỗi AI: {e}"
-text
+
 
 # --- 5. GIAO DIỆN CHÍNH ---
 st.title("🛠️ Tạo & Phân Tích Khối Chữ L (Dynamic)")
@@ -181,4 +181,5 @@ with tab2:
         with st.spinner("AI đang soi bản vẽ..."):
             st.image(uploaded_file, width=200)
             st.write(ask_ai(h1, w1, l2, uploaded_file))
+
 
