@@ -116,30 +116,34 @@ def ask_ai(h1, w1, l2, uploaded_file=None):
         return "⚠️ Vui lòng nhập API Key trước."
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
+        # SDK MỚI >0.7
+        client = genai.Client(api_key=api_key_input)
 
-        # Prompt cho giáo viên Công nghệ 8
         prompt = f"""
         Tôi đang dạy vẽ kỹ thuật lớp 8.
-        Vật thể là khối chữ L có kích thước:
-        - Phần đứng cao {h1} đơn vị, rộng {w1} đơn vị.
-        - Phần ngang dài thêm {l2} đơn vị, cao 1 đơn vị.
+        Vật thể là khối chữ L có:
+        - Phần đứng cao {h1}, rộng {w1}.
+        - Phần ngang dài {l2}, cao 1.
 
-        Hãy giải thích NGẮN GỌN, DỄ HIỂU cho học sinh:
+        Hãy giải thích NGẮN GỌN, DỄ HIỂU:
         1. Kích thước hình chiếu đứng.
         2. Vì sao hình chiếu cạnh có một đường ngang ở cao độ 1.
         """
 
-        # Nếu có ảnh học sinh vẽ
         if uploaded_file:
             img = Image.open(uploaded_file)
-            response = model.generate_content([
-                "Đây là bản vẽ hình chiếu của học sinh lớp 8. Hãy nhận xét đúng – sai và góp ý ngắn gọn.",
-                img
-            ])
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=[
+                    "Đây là bản vẽ hình chiếu của học sinh lớp 8. Nhận xét đúng – sai, góp ý ngắn gọn.",
+                    img
+                ]
+            )
         else:
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
 
         return response.text
 
@@ -180,6 +184,7 @@ with tab2:
         with st.spinner("AI đang soi bản vẽ..."):
             st.image(uploaded_file, width=200)
             st.write(ask_ai(h1, w1, l2, uploaded_file))
+
 
 
 
