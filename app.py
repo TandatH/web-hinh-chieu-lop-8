@@ -7,7 +7,7 @@ from google import genai
 
 # ================== CẤU HÌNH TRANG ==================
 st.set_page_config(
-    page_title="Phân Tích Khối 3D",
+    page_title="Phân tích vật thể 3D & hình chiếu",
     page_icon="📐",
     layout="wide"
 )
@@ -48,9 +48,9 @@ with st.sidebar:
         l2 = st.slider("Chiều dài", 1, 5, 2)
     else:
         st.success("Đang dùng ảnh tải lên")
-        h1, w1, l2 = 3, 1, 2
+        h1, w1, l2 = 3, 1, 2   # giá trị giả để tránh lỗi
 
-# ================== HÀM VẼ 3D ==================
+# ================== HÀM VẼ 3D KHỐI L ==================
 def create_dynamic_L_block(h1, w1, l2):
     def cube(x0, y0, z0, dx, dy, dz, color, name):
         x = np.array([0,1,1,0,0,1,1,0])*dx + x0
@@ -82,7 +82,7 @@ def create_dynamic_L_block(h1, w1, l2):
     )
     return fig
 
-# ================== HÀM VẼ 2D ==================
+# ================== HÀM VẼ HÌNH CHIẾU KHỐI L ==================
 def plot_dynamic_projections(h1, w1, l2):
     fig, axes = plt.subplots(1,3,figsize=(10,4))
     for ax in axes:
@@ -91,19 +91,62 @@ def plot_dynamic_projections(h1, w1, l2):
 
     # Chiếu đứng
     axes[0].set_title("Chiếu đứng")
-    axes[0].plot([0,w1+l2,w1+l2,w1,w1,0,0],
-                 [0,0,1,1,h1,h1,0], lw=2)
+    axes[0].plot(
+        [0,w1+l2,w1+l2,w1,w1,0,0],
+        [0,0,1,1,h1,h1,0], lw=2
+    )
 
     # Chiếu bằng
     axes[1].set_title("Chiếu bằng")
-    axes[1].plot([0,w1+l2,w1+l2,0,0],
-                 [0,0,w1,w1,0], lw=2)
+    axes[1].plot(
+        [0,w1+l2,w1+l2,0,0],
+        [0,0,w1,w1,0], lw=2
+    )
+    axes[1].plot([w1,w1],[0,w1], lw=2)
 
     # Chiếu cạnh
     axes[2].set_title("Chiếu cạnh")
-    axes[2].plot([0,w1,w1,0,0],
-                 [0,0,h1,h1,0], lw=2)
+    axes[2].plot(
+        [0,w1,w1,0,0],
+        [0,0,h1,h1,0], lw=2
+    )
     axes[2].plot([0,w1],[1,1], lw=2)
+
+    plt.tight_layout()
+    return fig
+
+# ================== VẼ HÌNH CHIẾU TỪ ẢNH (MINH HỌA) ==================
+def draw_projection_from_image():
+    fig, axes = plt.subplots(1,3,figsize=(10,4))
+    titles = ["Chiếu đứng", "Chiếu bằng", "Chiếu cạnh"]
+
+    for ax, title in zip(axes, titles):
+        ax.set_title(title, color="blue")
+        ax.set_aspect("equal")
+        ax.axis("off")
+
+    # Chiếu đứng – dạng khối bậc
+    axes[0].plot(
+        [0,4,4,2,2,0,0],
+        [0,0,2,2,4,4,0],
+        lw=2
+    )
+
+    # Chiếu bằng
+    axes[1].plot(
+        [0,4,4,0,0],
+        [0,3,3,3,0],
+        lw=2
+    )
+    axes[1].plot([2,2],[0,3], lw=2)
+
+    # Chiếu cạnh
+    axes[2].plot(
+        [0,3,3,0,0],
+        [0,4,4,4,0],
+        lw=2
+    )
+    axes[2].plot([0,3],[2,2], lw=2)
 
     plt.tight_layout()
     return fig
@@ -117,11 +160,11 @@ def ask_ai_analyze_block(image_file=None, h1=None, w1=None, l2=None):
         if image_file:
             img = Image.open(image_file)
             prompt = """
-            Bạn là giáo viên Vẽ Kỹ Thuật.
-            1. Mô tả hình dáng vật thể.
-            2. Dự đoán hình chiếu đứng.
-            3. Dự đoán hình chiếu bằng.
-            Trả lời ngắn gọn.
+            Bạn là giáo viên Vẽ Kỹ Thuật THCS.
+            Hãy:
+            1. Mô tả dạng hình học của vật thể.
+            2. Nhận xét hình chiếu đứng, bằng, cạnh.
+            Trình bày ngắn gọn, dễ hiểu cho học sinh lớp 8.
             """
             response = client.models.generate_content(
                 model="gemini-3-flash-preview",
@@ -129,12 +172,12 @@ def ask_ai_analyze_block(image_file=None, h1=None, w1=None, l2=None):
             )
         else:
             prompt = f"""
-            Khối chữ L:
+            Vật thể là khối chữ L:
             - Cao {h1}
             - Rộng {w1}
             - Dài {l2}
 
-            Giải thích vì sao hình chiếu cạnh có 1 đường gạch ngang.
+            Giải thích vì sao hình chiếu cạnh có một đường gạch ngang.
             """
             response = client.models.generate_content(
                 model="gemini-3-flash-preview",
@@ -153,7 +196,7 @@ col1, col2 = st.columns([1,1.5])
 
 with col1:
     if uploaded_new_block:
-        st.image(uploaded_new_block, caption="Ảnh vật thể")
+        st.image(uploaded_new_block, caption="Ảnh vật thể 3D")
     else:
         st.plotly_chart(
             create_dynamic_L_block(h1,w1,l2),
@@ -161,10 +204,12 @@ with col1:
         )
 
 with col2:
-    if not uploaded_new_block:
-        st.pyplot(plot_dynamic_projections(h1,w1,l2))
+    if uploaded_new_block:
+        st.subheader("📐 Hình chiếu minh họa (AI suy luận)")
+        st.pyplot(draw_projection_from_image())
+        st.caption("Hình chiếu dùng cho học tập – không yêu cầu đúng kích thước")
     else:
-        st.info("Nhấn nút bên dưới để AI phân tích hình chiếu")
+        st.pyplot(plot_dynamic_projections(h1,w1,l2))
 
 st.divider()
 
