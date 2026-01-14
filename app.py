@@ -16,7 +16,7 @@ st.set_page_config(
 # ======================================================
 # 2. CẤU HÌNH AI (ẨN NẾU CHƯA CÓ KEY)
 # ======================================================
-api_key = st.secrets.get("GEMINI_API_KEY", None)
+api_key = st.secrets.get("AIzaSyA-TYnWFvS4YByH0NW_e98vqcTQR6lnw44", None)
 ai_ready = False
 
 if api_key:
@@ -148,3 +148,4 @@ if ai_ready:
         st.markdown(model.generate_content(prompt).text)
 
 st.caption("Ứng dụng học tập Công Nghệ 8 – Streamlit 2026")
+
