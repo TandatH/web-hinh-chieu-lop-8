@@ -117,7 +117,7 @@ def ask_ai(h1, w1, l2, uploaded_file=None):
 
     try:
         model = genai.GenerativeModel(
-            model_name="models/gemini-1.5-flash"
+            model_name="models/gemini-1.0-pro"
         )
 
         # Prompt cho giáo viên Công nghệ 8
@@ -181,5 +181,6 @@ with tab2:
         with st.spinner("AI đang soi bản vẽ..."):
             st.image(uploaded_file, width=200)
             st.write(ask_ai(h1, w1, l2, uploaded_file))
+
 
 
