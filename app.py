@@ -6,9 +6,10 @@ import numpy as np
 
 # --- 1. CẤU HÌNH API KEY ---
 try:
-    api_key = st.secrets["AIzaSyA-TYnWFvS4YByH0NW_e98vqcTQR61nw44"]
+    api_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=api_key)
     api_status = "Đã kết nối AI thành công! ✅"
+
 except Exception as e:
     api_status = "⚠️ Chưa tìm thấy API Key (Chế độ xem offline)"
     api_key = None
@@ -130,5 +131,6 @@ if st.button("🤖 Nhờ AI giải thích bài học"):
 st.markdown("---")
 
 st.caption("Dự án hỗ trợ học tập - Tương tác 3D với Streamlit & Plotly")
+
 
 
