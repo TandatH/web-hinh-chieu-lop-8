@@ -6,7 +6,7 @@ import numpy as np
 
 # --- 1. CẤU HÌNH API KEY ---
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
+    api_key = st.secrets["AIzaSyA-TYnWFvS4YByH0NW_e98vqcTQR6lnw44"]
     genai.configure(api_key=api_key)
     api_status = "Đã kết nối AI thành công! ✅"
 
@@ -131,6 +131,7 @@ if st.button("🤖 Nhờ AI giải thích bài học"):
 st.markdown("---")
 
 st.caption("Dự án hỗ trợ học tập - Tương tác 3D với Streamlit & Plotly")
+
 
 
 
