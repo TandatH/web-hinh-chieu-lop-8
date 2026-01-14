@@ -1,6 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import google.generativeai as genai
+from google import genai
 import plotly.graph_objects as go
 import numpy as np
 
@@ -130,3 +130,4 @@ if st.button("🤖 Nhờ AI giải thích bài học"):
 st.markdown("---")
 
 st.caption("Dự án hỗ trợ học tập - Tương tác 3D với Streamlit & Plotly")
+
