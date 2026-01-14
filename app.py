@@ -6,45 +6,47 @@ import numpy as np
 from PIL import Image
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Vẽ Kỹ Thuật 3D Động", page_icon="📐", layout="wide")
+st.set_page_config(page_title="Phân Tích Khối 3D", page_icon="📐", layout="wide")
 
 # --- 1. SIDEBAR: CẤU HÌNH & NHẬP LIỆU ---
 with st.sidebar:
     st.header("⚙️ Cấu hình")
-    
-    # Nhập API Key an toàn
     api_key_input = st.text_input("Nhập Google AI API Key", type="password", help="Nhập key bắt đầu bằng AIza...")
-    
     if api_key_input:
         try:
             genai.configure(api_key=api_key_input)
             st.success("Đã kết nối AI! ✅")
         except:
             st.error("Key không hợp lệ.")
+            api_key_input = None
     else:
         st.warning("Chưa nhập API Key (AI sẽ tắt)")
 
     st.divider()
-    st.header("🎛️ Tùy chỉnh Khối L")
-    # Thông số khối đứng
-    h1 = st.slider("Chiều cao (Đứng)", 2, 6, 3)
-    w1 = st.slider("Chiều rộng (Đứng)", 1, 3, 1)
+    st.header("🖼️ Chế độ hoạt động")
     
-    # Thông số khối ngang
-    l2 = st.slider("Chiều dài (Ngang)", 1, 5, 2)
+    # TÙY CHỌN MỚI: TẢI ẢNH KHỐI BẤT KỲ
+    uploaded_new_block = st.file_uploader("Tải ảnh khối 3D mới (Thay thế khối L):", type=["png", "jpg", "jpeg"])
     
-    st.info("Thay đổi thanh trượt để cập nhật hình chiếu!")
+    if not uploaded_new_block:
+        # Chỉ hiện tùy chỉnh khối L nếu KHÔNG tải ảnh mới
+        st.subheader("🎛️ Tùy chỉnh Khối L mặc định")
+        h1 = st.slider("Chiều cao (Đứng)", 2, 6, 3)
+        w1 = st.slider("Chiều rộng (Đứng)", 1, 3, 1)
+        l2 = st.slider("Chiều dài (Ngang)", 1, 5, 2)
+        st.info("Kéo thanh trượt để thay đổi khối L bên cạnh.")
+    else:
+        st.success("Đang sử dụng ảnh khối mới tải lên!")
+        # Đặt giá trị mặc định để tránh lỗi code phía dưới
+        h1, w1, l2 = 3, 1, 2 
 
-# --- 2. HÀM TẠO KHỐI 3D ĐỘNG (PARAMETRIC) ---
+# --- 2. CÁC HÀM VẼ (GIỮ NGUYÊN CHO KHỐI L) ---
 def create_dynamic_L_block(h1, w1, l2):
-    # Khối 1: Trụ đứng (Gốc 0,0,0)
-    # Kích thước: Rộng=w1, Sâu=w1 (giả sử vuông), Cao=h1
-    
+    # ... (Code vẽ 3D giữ nguyên như cũ) ...
     def get_cube_trace(x_start, y_start, z_start, dx, dy, dz, color, name):
         x = np.array([0, 1, 1, 0, 0, 1, 1, 0]) * dx + x_start
         y = np.array([0, 0, 1, 1, 0, 0, 1, 1]) * dy + y_start
         z = np.array([0, 0, 0, 0, 1, 1, 1, 1]) * dz + z_start
-        
         return go.Mesh3d(
             x=x, y=y, z=z,
             i = [7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
@@ -52,141 +54,91 @@ def create_dynamic_L_block(h1, w1, l2):
             k = [0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
             opacity=0.9, color=color, flatshading=True, name=name
         )
-
-    # Phần đứng (Màu cam)
     box_v = get_cube_trace(0, 0, 0, w1, w1, h1, '#FF7043', 'Đứng')
-    
-    # Phần ngang (Màu xanh) - Gắn vào bên phải phần đứng
-    # Bắt đầu từ x=w1, độ cao mặc định là 1 đơn vị (để tạo hình L)
     h_base = 1 
     box_h = get_cube_trace(w1, 0, 0, l2, w1, h_base, '#26A69A', 'Ngang')
-
     fig = go.Figure(data=[box_v, box_h])
-    fig.update_layout(
-        scene=dict(
-            xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False),
-            aspectmode='data'
-        ),
-        margin=dict(l=0, r=0, b=0, t=0), height=350
-    )
+    fig.update_layout(scene=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False), aspectmode='data'), margin=dict(l=0, r=0, b=0, t=0), height=350)
     return fig
 
-# --- 3. HÀM VẼ 2D ĐỘNG (MATPLOTLIB) ---
 def plot_dynamic_projections(h1, w1, l2):
-    h_base = 1 # Độ cao phần đế ngang
+    # ... (Code vẽ 2D giữ nguyên như cũ) ...
+    h_base = 1
     total_width = w1 + l2
-    
     fig, axes = plt.subplots(1, 3, figsize=(10, 4))
-    for ax in axes:
-        ax.set_aspect('equal')
-        ax.set_xlim(-0.5, total_width + 0.5)
-        ax.set_ylim(-0.5, h1 + 0.5)
-        ax.axis('off')
+    for ax in axes: ax.set_aspect('equal'); ax.set_xlim(-0.5, total_width + 0.5); ax.set_ylim(-0.5, h1 + 0.5); ax.axis('off')
+    axes[0].set_title("1. Chiếu Đứng", color='blue'); x_pts = [0, total_width, total_width, w1, w1, 0, 0]; y_pts = [0, 0, h_base, h_base, h1, h1, 0]; axes[0].plot(x_pts, y_pts, 'k-', lw=2); axes[0].fill(x_pts, y_pts, 'salmon', alpha=0.3)
+    axes[1].set_title("2. Chiếu Bằng", color='blue'); axes[1].set_ylim(-0.5, total_width + 0.5); axes[1].plot([0, total_width, total_width, 0, 0], [0, 0, w1, w1, 0], 'k-', lw=2); axes[1].plot([w1, w1], [0, w1], 'k-', lw=2) 
+    axes[2].set_title("3. Chiếu Cạnh", color='blue'); axes[2].plot([0, w1, w1, 0, 0], [0, 0, h1, h1, 0], 'k-', lw=2); axes[2].plot([0, w1], [h_base, h_base], 'k-', lw=2)
+    plt.tight_layout(); return fig
 
-    # 1. HÌNH CHIẾU ĐỨNG (Nhìn từ mặt trước - Trục XZ)
-    # Thấy hình chữ L
-    axes[0].set_title("1. Chiếu Đứng", color='blue', fontsize=12)
-    # Vẽ biên dạng chữ L
-    x_pts = [0, total_width, total_width, w1, w1, 0, 0]
-    y_pts = [0, 0, h_base, h_base, h1, h1, 0]
-    axes[0].plot(x_pts, y_pts, 'k-', lw=2)
-    axes[0].fill(x_pts, y_pts, 'salmon', alpha=0.3)
+# --- 3. HÀM AI PHÂN TÍCH (NÂNG CẤP) ---
+def ask_ai_analyze_block(image_file=None, h1=None, w1=None, l2=None):
+    if not api_key_input: return "⚠️ Vui lòng nhập API Key."
+    
+    # Dùng model Flash cho nhanh
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
-    # 2. HÌNH CHIẾU BẰNG (Nhìn từ trên xuống - Trục XY)
-    # Thấy hình chữ nhật dài chia làm 2 phần
-    axes[1].set_title("2. Chiếu Bằng", color='blue', fontsize=12)
-    axes[1].set_ylim(-0.5, total_width + 0.5) # Resize lại cho cân
-    # Khung bao ngoài (w1 x total_width) -> Ở đây vẽ đơn giản hóa chiều sâu = w1
-    axes[1].plot([0, total_width, total_width, 0, 0], [0, 0, w1, w1, 0], 'k-', lw=2)
-    # Nét liền phân chia 2 khối
-    axes[1].plot([w1, w1], [0, w1], 'k-', lw=2) 
-
-    # 3. HÌNH CHIẾU CẠNH (Nhìn từ trái sang - Trục YZ)
-    # Thấy hình chữ nhật đứng (w1 x h1)
-    axes[2].set_title("3. Chiếu Cạnh", color='blue', fontsize=12)
-    axes[2].plot([0, w1, w1, 0, 0], [0, 0, h1, h1, 0], 'k-', lw=2) # Bao ngoài
-    # Nét liền thể hiện bậc ngang (nếu nhìn từ trái thì thấy bậc)
-    axes[2].plot([0, w1], [h_base, h_base], 'k-', lw=2)
-
-    plt.tight_layout()
-    return fig
-
-def ask_ai(h1, w1, l2, uploaded_file=None):
-    if not api_key_input:
-        return "⚠️ Vui lòng nhập API Key trước."
-
-    try:
-        # SDK MỚI >0.7
-        client = genai.Client(api_key=api_key_input)
-
-        prompt = f"""
-        Tôi đang dạy vẽ kỹ thuật lớp 8.
-        Vật thể là khối chữ L có:
-        - Phần đứng cao {h1}, rộng {w1}.
-        - Phần ngang dài {l2}, cao 1.
-
-        Hãy giải thích NGẮN GỌN, DỄ HIỂU:
-        1. Kích thước hình chiếu đứng.
-        2. Vì sao hình chiếu cạnh có một đường ngang ở cao độ 1.
+    if image_file:
+        # Trường hợp 1: Phân tích ảnh khối mới tải lên
+        img = Image.open(image_file)
+        prompt = """
+        Bạn là giáo viên Vẽ Kỹ Thuật. Hãy quan sát khối vật thể 3D trong bức ảnh này và:
+        1. Mô tả ngắn gọn hình dáng của vật thể này (Nó được tạo thành từ các khối cơ bản nào?).
+        2. Dự đoán hình chiếu đứng (nhìn từ mặt trước) của nó sẽ có hình dạng gì?
+        3. Dự đoán hình chiếu bằng (nhìn từ trên xuống) của nó sẽ có hình dạng gì?
         """
+        response = model.generate_content([prompt, img])
+    else:
+        # Trường hợp 2: Phân tích khối L mặc định
+        prompt = f"""
+        Bạn là giáo viên Vẽ Kỹ Thuật. Vật thể là khối chữ L có kích thước: Phần đứng cao {h1}, rộng {w1}. Phần ngang dài thêm {l2}.
+        Hãy giải thích tại sao hình chiếu cạnh của nó lại có một nét gạch ngang ở giữa?
+        """
+        response = model.generate_content(prompt)
+        
+    return response.text
 
-        if uploaded_file:
-            img = Image.open(uploaded_file)
-            response = client.models.generate_content(
-                model="gemini-1.5-flash",
-                contents=[
-                    "Đây là bản vẽ hình chiếu của học sinh lớp 8. Nhận xét đúng – sai, góp ý ngắn gọn.",
-                    img
-                ]
-            )
-        else:
-            response = client.models.generate_content(
-                model="gemini-1.5-flash",
-                contents=prompt
-            )
-
-        return response.text
-
-    except Exception as e:
-        return f"❌ Lỗi AI: {e}"
-
-
-# --- 5. GIAO DIỆN CHÍNH ---
-st.title("🛠️ Tạo & Phân Tích Khối Chữ L (Dynamic)")
-st.caption("Chỉnh thông số bên trái -> Hình thay đổi ngay lập tức.")
+# --- 4. GIAO DIỆN CHÍNH (LOGIC HIỂN THỊ MỚI) ---
+st.title("🛠️ Phân Tích Vật Thể 3D & Hình Chiếu")
 
 col1, col2 = st.columns([1, 1.5])
 
+# --- CỘT 1: MÔ HÌNH 3D ---
 with col1:
-    st.subheader("Mô hình 3D")
-    fig_3d = create_dynamic_L_block(h1, w1, l2)
-    st.plotly_chart(fig_3d, use_container_width=True)
+    if uploaded_new_block:
+        # NẾU CÓ ẢNH MỚI: Hiển thị ảnh đó
+        st.subheader("📸 Ảnh vật thể mới")
+        st.image(uploaded_new_block, caption="Vật thể bạn tải lên", use_column_width=True)
+        st.info("AI sẽ phân tích ảnh này thay vì khối L.")
+    else:
+        # NẾU KHÔNG CÓ ẢNH: Hiển thị khối L tương tác mặc định
+        st.subheader("🧊 Mô hình 3D Tương tác (Khối L)")
+        fig_3d = create_dynamic_L_block(h1, w1, l2)
+        st.plotly_chart(fig_3d, use_container_width=True)
 
+# --- CỘT 2: BẢN VẼ 2D ---
 with col2:
-    st.subheader("Bản vẽ 2D Tương ứng")
-    fig_2d = plot_dynamic_projections(h1, w1, l2)
-    st.pyplot(fig_2d)
+    st.subheader("📐 Bản vẽ Hình chiếu tương ứng")
+    if uploaded_new_block:
+        # Nếu là ảnh mới, không vẽ được 2D chính xác ngay, hiện thông báo chờ AI
+        st.warning("Đang hiển thị ảnh vật thể mới. Vui lòng nhấn nút bên dưới để AI phân tích hình chiếu của vật thể này.")
+        # Có thể hiển thị một hình ảnh placeholder hoặc để trống
+    else:
+        # Nếu là khối L, vẽ 2D như bình thường
+        fig_2d = plot_dynamic_projections(h1, w1, l2)
+        st.pyplot(fig_2d)
 
 st.divider()
 
 # --- KHU VỰC AI ---
-st.subheader("🤖 Trợ lý AI (Giáo viên ảo)")
-tab1, tab2 = st.tabs(["Giải thích thông số hiện tại", "Chấm bài (Tải ảnh lên)"])
+st.subheader("🤖 Giáo viên AI phân tích")
 
-with tab1:
-    if st.button("Giải thích hình này"):
-        with st.spinner("AI đang suy nghĩ..."):
-            st.write(ask_ai(h1, w1, l2))
-
-with tab2:
-    uploaded_file = st.file_uploader("Tải ảnh bài vẽ tay của bạn lên để AI chấm:", type=["png", "jpg", "jpeg"])
-    if uploaded_file and st.button("Chấm bài"):
-        with st.spinner("AI đang soi bản vẽ..."):
-            st.image(uploaded_file, width=200)
-            st.write(ask_ai(h1, w1, l2, uploaded_file))
-
-
-
-
-
-
+if st.button("Nhờ AI phân tích vật thể đang hiển thị"):
+    with st.spinner("AI đang quan sát và suy nghĩ..."):
+        # Truyền đúng tham số tùy vào việc có ảnh mới hay không
+        if uploaded_new_block:
+            analysis_result = ask_ai_analyze_block(image_file=uploaded_new_block)
+        else:
+            analysis_result = ask_ai_analyze_block(h1=h1, w1=w1, l2=l2)
+        st.markdown(analysis_result)
