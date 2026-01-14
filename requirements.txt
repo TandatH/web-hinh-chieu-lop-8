@@ -5,3 +5,4 @@ numpy
 # Quan trọng: Thêm dòng này để ép cài bản mới nhất
 google-generativeai>=0.7.0
 Pillow
+google-generativeai>=0.7.0
